@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secret Chat</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #181818;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+        }
+
+        h1 {
+            color: #5c9cfd;
+            margin-top: 20px;
+            font-size: 2em;
+        }
+
+        #chatbox {
+            width: 90%;
+            max-width: 600px;
+            height: 300px;
+            border: 1px solid #444;
+            background-color: #333;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            overflow-y: auto;
+            text-align: left;
+            color: #fff;
+        }
+
+        #msg {
+            width: 90%;
+            max-width: 600px;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background-color: #222;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px 20px;
+            margin-top: 10px;
+            font-size: 16px;
+            background-color: #5c9cfd;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #4a87d8;
+        }
+
+        button:disabled {
+            background-color: #777;
+            cursor: not-allowed;
+        }
+
+        .message {
+            padding: 8px;
+            margin: 6px 0;
+            border-radius: 8px;
+            background-color: #444;
+            font-size: 14px;
+        }
+
+        .message-user {
+            background-color: #5c9cfd;
+        }
+
+        .message-server {
+            background-color: #666;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+            max-width: 640px;
+        }
+
+        footer {
+            position: absolute;
+            bottom: 20px;
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h1>Secret Chat</h1>
+        <div id="chatbox"></div>
+        <input id="msg" type="text" placeholder="Type a secret message" oninput="enableSendButton()">
+        <button id="sendButton" onclick="sendMessage()" disabled>Send</button>
+    </div>
+    
+    <footer>
+        <p>Encrypted for privacy. No adult content allowed.</p>
+    </footer>
+
+    <script>
+        // Assign a random color to the user upon first visit
+        let userColor = localStorage.getItem('userColor');
+        if (!userColor) {
+            userColor = getRandomColor();
+            localStorage.setItem('userColor', userColor);  // Store user color in localStorage
+        }
+
+        function getRandomColor() {
+            // Generate a random color in HEX format
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        function refreshChat() {
+            fetch('/messages')
+                .then(response => response.text())
+                .then(data => document.getElementById("chatbox").innerHTML = data);
+        }
+
+        function sendMessage() {
+            let msg = document.getElementById("msg").value;
+            if (msg.trim() !== "") {
+                fetch('/send?msg=' + encodeURIComponent(msg) + '&color=' + encodeURIComponent(userColor));
+                document.getElementById("msg").value = "";
+                document.getElementById("sendButton").disabled = true;
+                setTimeout(refreshChat, 500);
+            }
+        }
+
+        function enableSendButton() {
+            let msg = document.getElementById("msg").value.trim();
+            document.getElementById("sendButton").disabled = msg === ""; 
+        }
+
+        setInterval(refreshChat, 2000);
+        refreshChat();
+    </script>
+</body>
+</html>
